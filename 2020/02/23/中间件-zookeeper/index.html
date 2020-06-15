@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico?v=5.1.4">
+
+
+
+
+
+
+  <meta name="keywords" content="中间件,服务注册发现," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="定义ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。ZooKeeper的目标就是封装好复杂易出错的关键服务，将简单易用的接口和性能高效、功能稳定的系统提供给用户。ZooKeeper包含一个简单的原语">
+<meta property="og:type" content="article">
+<meta property="og:title" content="中间件-zookeeper">
+<meta property="og:url" content="http://yoursite.com/2020/02/23/%E4%B8%AD%E9%97%B4%E4%BB%B6-zookeeper/index.html">
+<meta property="og:site_name" content="学习笔记">
+<meta property="og:description" content="定义ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。ZooKeeper的目标就是封装好复杂易出错的关键服务，将简单易用的接口和性能高效、功能稳定的系统提供给用户。ZooKeeper包含一个简单的原语">
+<meta property="og:image" content="http://yoursite.com/2020/02/23/%E4%B8%AD%E9%97%B4%E4%BB%B6-zookeeper/Znode.jpg">
+<meta property="og:image" content="http://yoursite.com/2020/02/23/%E4%B8%AD%E9%97%B4%E4%BB%B6-zookeeper/zk-lock.jpg">
+<meta property="article:published_time" content="2020-02-23T01:10:04.000Z">
+<meta property="article:modified_time" content="2020-02-26T06:11:03.851Z">
+<meta property="article:author" content="疾风灬利刃">
+<meta property="article:tag" content="中间件">
+<meta property="article:tag" content="服务注册发现">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/02/23/%E4%B8%AD%E9%97%B4%E4%BB%B6-zookeeper/Znode.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/02/23/中间件-zookeeper/"/>
+
+
+
+
+
+  <title>中间件-zookeeper | 学习笔记</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+	
+	<a href="https://github.com/0V1" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+	
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">学习笔记</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">记录学习过程中的点点滴滴</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/23/%E4%B8%AD%E9%97%B4%E4%BB%B6-zookeeper/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="疾风灬利刃">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/header.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="学习笔记">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">中间件-zookeeper</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-02-23T09:10:04+08:00">
+                2020-02-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index">
+                    <span itemprop="name">分布式</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3.7k
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  13
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h1><p>ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。<br>它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。<br>ZooKeeper的目标就是封装好复杂易出错的关键服务，将简单易用的接口和性能高效、功能稳定的系统提供给用户。<br>ZooKeeper包含一个简单的原语集，提供Java和C的接口。<br>ZooKeeper代码版本中，提供了分布式独享锁、选举、队列的接口，代码在$zookeeper_home\src\recipes。其中分布锁和队列有Java<br>和C两个版本，选举只有Java版本。</p>
+<h1 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h1><p><img src="/2020/02/23/%E4%B8%AD%E9%97%B4%E4%BB%B6-zookeeper/Znode.jpg" alt="zk存储结构 - 树形结构"></p>
+<h2 id="Znode节点"><a href="#Znode节点" class="headerlink" title="Znode节点"></a>Znode节点</h2><p>在 Zookeeper 中，znode 是一个跟 Unix 文件系统路径相似的节点，可以往这个节点存储 或获取数据。 Zookeeper 底层是一套数据结构。<br>这个存储结构是一个树形结构，其上的每一个节点， 我们称之为“znode” zookeeper 中的数据是按照“树”结构进行存储的。<br>而且 znode 节点还分为 4 中不同的类 型。 每一个 znode 默认能够存储 1MB 的数据（对于记录状态性质的数据来说，够了）<br>可以使用 zkCli 命令，登录到 zookeeper 上，并通过 ls、create、delete、get、set 等命令 操作这些 znode 节点</p>
+<h2 id="znode节点类型"><a href="#znode节点类型" class="headerlink" title="znode节点类型"></a>znode节点类型</h2><ul>
+<li>PERSISTENT 持久化节点<br>  当客户端断开连接时，znode不会被自动删除。</li>
+<li>PERSISTENT_SEQUENTIAL 持久化有序节点<br>  在客户端断开连接时，znode不会被自动删除，它的名称将附加一个单调递增的数字。</li>
+<li>EPHEMERAL 临时节点<br>  当客户端断开连接时，znode将被删除。</li>
+<li>EPHEMERAL_SEQUENTIAL 临时有序节点<br>  当客户端断开连接时，znode将被删除，它的名称将附加一个单调递增的数字。</li>
+<li>CONTAINER 容器节点<br>  znode将是一个容器节点。容器节点是一种特殊用途的节点，对诸如leader、lock等非常有用。当一个容器的最后一个子容器<br>  被删除时，该容器将成为将来服务器删除的候选对象。有了这个属性，您应该准备获得{@link org.apache.zookeeper.KeeperException。<br>  在此容器节点内创建子节点时使用NoNodeException}。</li>
+<li>PERSISTENT_WITH_TTL 有限时间持久化节点<br>  在客户端断开连接时，znode不会被自动删除。但是，如果在给定的TTL中没有修改znode，那么它将在没有子节点时被删除。</li>
+<li>PERSISTENT_SEQUENTIAL_WITH_TTL 有限时间有序持久化节点<br>  在客户端断开连接时，znode不会被自动删除，它的名称将附加一个单调递增的数字。但是，如果在给定的TTL中没有修改znode，<br>  那么它将在没有子节点时被删除。</li>
+</ul>
+<h1 id="ZAB协议"><a href="#ZAB协议" class="headerlink" title="ZAB协议"></a>ZAB协议</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>ZAB（Zookeeper Atomic Broadcast） 协议是为分布式协调服务zookeeper专门设计的一种支持崩溃恢复的原子广播协议。在zookeeper中，<br>主要依赖ZAB协议来实现分布式数据一致性，基于该协议，zookeeper实现了一种主备模式的系统架构来保持集群中各个副本之间的数据一致性。  </p>
+<h2 id="ZAB协议包含两种基本模式"><a href="#ZAB协议包含两种基本模式" class="headerlink" title="ZAB协议包含两种基本模式"></a>ZAB协议包含两种基本模式</h2><ul>
+<li>消息广播之原子广播</li>
+<li>崩溃恢复之数据恢复   </li>
+</ul>
+<h3 id="消息广播之原子广播"><a href="#消息广播之原子广播" class="headerlink" title="消息广播之原子广播"></a>消息广播之原子广播</h3><pre><code>当集群中已经有过半的Follower节点完成了和Leader状态同步以后，那么整个集群就进入了消息广播模式。这个时候，在Leader节点正常工作时，启动一台新的服务器加入到集群，那这个服务器会直接进入数据恢复模式，和leader节点进行数据同步。同步完成后即可正常对外提供非事务请求的处理。
+消息广播实际上是一个简化版的2PC提交过程：
+1. leader接收到消息请求后，将消息赋予一个全局唯一的64位自增id，叫：zxid，通过zxid的大小比较就可以实现因果有序这个特征。
+2. leader为每个follower准备了一个FIFO队列（通过TCP协议来实现，以实现全局有序这一个特点）将带有zxid的消息作为一个提案（proposal）分发给所有的 follower。
+3. 当follower接收到proposal，先把proposal写到磁盘，写入成功以后再向leader回复一个ack。
+4. 当leader接收到合法数量（超过半数节点）的ack后，leader就会向这些follower发送commit命令，同时会在本地执行该消息。
+5. 当follower收到消息的commit命令以后，会提交该消息。 </code></pre><h3 id="崩溃恢复之数据恢复"><a href="#崩溃恢复之数据恢复" class="headerlink" title="崩溃恢复之数据恢复"></a>崩溃恢复之数据恢复</h3><pre><code>当整个集群正在启动时，或者当leader节点出现网络中断、崩溃等情况时，ZAB协议就会进入恢复模式并选举产生新的leader，
+当leader服务器选举出来后，并且集群中有过半的机器和该leader节点完成数据同步后（同步指的是数据同步，用来保证集群中过半
+的机器能够和leader服务器的数据状态保持一致），ZAB协议就会退出恢复模式。
+
+ZAB协议的这个基于原子广播协议的消息广播过程，在正常情况下是没有任何问题的，但是一旦Leader节点崩溃，或者由于网络问题
+导致Leader服务器失去了过半的Follower节点的联系（leader失去与过半follower节点联系，可能是leader节点和 follower节点
+之间产生了网络分区，那么此时的leader不再是合法的leader了），那么就会进入到崩溃恢复模式。在ZAB协议中，为了保证程序的
+正确运行，整个恢复过程结束后需要选举出一个新的Leader。
+为了使leader挂了后系统能正常工作，需要解决以下两个问题：
+1. 已经被处理的消息不能丢失
+当leader收到合法数量follower的ack后，就向各个follower广播commit命令，同时也会在本地执行commit并向连接的客户端返回
+「成功」。但是如果各个follower在收到commit命令前leader就挂了，导致剩下的服务器并没有执行到这条消息。
+leader对事务消息发起commit操作，该消息在follower1上执行了，但是follower2还没有收到commit，leader就已经挂了，而实际上
+客户端已经收到该事务消息处理成功的回执了。所以在zab协议下需要保证所有机器都要执行这个事务消息，必须满足已经被处理的消息不能丢失。
+2. 被丢弃的消息不能再次出现
+当leader接收到消息请求生成proposal后就挂了，其他follower并没有收到此proposal，因此经过恢复模式重新选了leader后，
+这条消息是被跳过的。 此时，之前挂了的leader重新启动并注册成了follower，他保留了被跳过消息的proposal状态，与整个系统
+的状态是不一致的，需要将其删除。（leader都换代了，所以以前leader的proposal失效了）</code></pre><h4 id="针对崩溃恢复的两种情况分析"><a href="#针对崩溃恢复的两种情况分析" class="headerlink" title="针对崩溃恢复的两种情况分析"></a>针对崩溃恢复的两种情况分析</h4><pre><code>ZAB协议需要满足上面两种情况，就必须要设计一个leader选举算法，能够确保已经被leader提交的事务Proposal能够提交、
+同时丢弃已经被跳过的事务Proposal。
+针对这个要求：
+如果leader选举算法能够保证新选举出来的Leader服务器拥有集群中所有机器最高编号（ZXID 最大）的事务Proposal，那么就可以
+保证这个新选举出来的leader一定具有已经提交的提案。因为所有提案被commit之前必须有超过半数的follower ack，即必须有超过
+半数节点的服务器的事务日志上有该提案的proposal，因此只要有合法数量的节点正常工作，就必然有一个节点保存了所有被commit
+消息的proposal状态。
+另外一个，zxid是64位，高32位是epoch编号，每经过一次Leader选举产生一个新的leader，新的leader会将epoch号+1，低32位是
+消息计数器，每接收到一条消息这个值+1，新leader选举后这个值重置为0。这样设计的好处在于老的leader挂了以后重启，它不会
+被选举为leader，因此此时它的zxid肯定小于当前新的leader。当老的leader作为follower接入新的leader后，新的leader会让它将
+所有的拥有旧的epoch号的未被commit的proposal清除。</code></pre><h4 id="ZXID"><a href="#ZXID" class="headerlink" title="ZXID"></a>ZXID</h4><pre><code>zxid，也就是事务id，为了保证事务的顺序一致性，zookeeper采用了递增的事务id号（zxid）来标识事务。所有的提议（proposal）
+都在被提出的时候加上了zxid，实际中zxid是一个64位的数字，它高32位是epoch（ZAB协议通过epoch编号来区分Leader周期变化的策略）
+用来标识leader关系是否改变，每次一个leader被选出来，它都会有一个新的epoch=（原来的epoch+1），标识当前属于那个leader
+的统治时期。低32位用于递增计数。</code></pre><h1 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h1><h2 id="ACL-权限控制"><a href="#ACL-权限控制" class="headerlink" title="ACL 权限控制"></a>ACL 权限控制</h2><p>Zookeeper 作为一个分布式协调框架，内部存储了一些分布式系统运行时的状态的数据，比如 master 选举、比如分布式<br>锁。对这些数据的操作会直接影响到分布式系统的运行状态。因此，为了保证 zookeeper 中的数据的安全性，避免误操作<br>带来的影响。Zookeeper 提供了一套 ACL 权限控制机制来保证数据的安全。</p>
+<h3 id="ACL权限"><a href="#ACL权限" class="headerlink" title="ACL权限"></a>ACL权限</h3><ul>
+<li>create 允许对子节点create操作</li>
+<li>read 允许对子节点getChildren和getDate操作</li>
+<li>write 允许对本节点setData操作</li>
+<li>delete 允许对子节点delete操作</li>
+<li>admin 允许对本节点setAcl操作   </li>
+</ul>
+<h3 id="ACL权限模式"><a href="#ACL权限模式" class="headerlink" title="ACL权限模式"></a>ACL权限模式</h3><ul>
+<li>ip 通过ip地址粒度来进行权限控制，例如配置某一个ip[ip:192.168.1.1]或者IP段[ip:192.168.1.1/24]</li>
+<li>digest 最常用的控制模式，类似于 [username:password]，设置的时候需要SHA-加密或者BASE64编码DigestAuthenticationProvider.generateDigest()</li>
+<li>world 最开放的控制模式，这种权限控制几乎没有任何权限，任何用户都可以操作[world:anyone]</li>
+<li>super 可以对任何节点做任何操作，超级管理员权限   </li>
+</ul>
+<h3 id="ACL授权对象"><a href="#ACL授权对象" class="headerlink" title="ACL授权对象"></a>ACL授权对象</h3><p>指权限赋予的用户或者一个实体，不同权限下，授予对象不同</p>
+<ul>
+<li>ip | ip或者IP段</li>
+<li>diges | username:BASE64(SHA-1(username:password))</li>
+<li>world | “ID”</li>
+<li>super | username:BASE64(SHA-1(username:password))</li>
+</ul>
+<h2 id="watch监听机制"><a href="#watch监听机制" class="headerlink" title="watch监听机制"></a>watch监听机制</h2><p>Watcher 监听机制是 Zookeeper 中非常重要的特性，我们基于 zookeeper 上创建的节点，可以对这些节点绑定监听事件，<br>比如可以监听节点数据变更、节点删除、子节点状态变更等事件，通过这个事件机制，可以基于 zookeeper 实现分布式<br>锁、集群管理等功能</p>
+<h3 id="watch特点"><a href="#watch特点" class="headerlink" title="watch特点"></a>watch特点</h3><p>当数据发生改变的时候，那么zookeeper 会产生一个 watch 事件并发送到客户端，但是客户端只会收到一次这样的通知，<br>如果以后这个数据再发生变化，那么之前设置 watch 的客户端不会再次收到消息。因为他是一次性的；如果要实现永久监听，<br>可以通过循环注册来实现</p>
+<h3 id="watch事件"><a href="#watch事件" class="headerlink" title="watch事件"></a>watch事件</h3><ul>
+<li>EventType.None | 当 zookeeper 客户端的连接状态发生变更时，该时间被触发（State值变化时）</li>
+<li>EventType.NodeCreated | 当 node 这个节点被创建时，该事件被触发</li>
+<li>EventType.NodeDeleted | 当 node 这个节点被删除时，该时间被触发</li>
+<li>EventType.NodeDataChanged | 当 node 这个节点的发生变更时时，该时间被触发</li>
+<li>EventType.NodeChildrenChanged | 当 node 这个节点的直接子节点发生被创建、被删除、被更新时，该时间被触发</li>
+</ul>
+<h2 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h2><p><img src="/2020/02/23/%E4%B8%AD%E9%97%B4%E4%BB%B6-zookeeper/zk-lock.jpg" alt="zk分布式锁"></p>
+<h3 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h3><p>通过有序节点来实现分布式锁，每个客户端都往指定的节点(/locks)下注册一个临时有序节点，越早创建的节点，节点的顺序编号就越小，<br>那么我们可以判断子节点中最小的节点设置为获得锁。如果自己的节点不是所有子节点中最小的，意味着还没有获得锁。这个的实现和<br>前面单节点实现的差异性在于，每个节点只需要监听比自己小的节点，当比自己小的节点删除以后，客户端会收到 watcher 事件，<br>此时再次判断自己的节点是不是所有子节点中最小的，如果是则获得锁，否则就不断重复这个过程，这样就不会导致羊群效应，<br>因为每个客户端只需要监控一个节点。</p>
+<h3 id="curator实现的分布式锁"><a href="#curator实现的分布式锁" class="headerlink" title="curator实现的分布式锁"></a>curator实现的分布式锁</h3><ul>
+<li>InterProcessMultiLock 分布式可重入排他锁</li>
+<li>InterProcessSemaphoreMutex 分布式排他锁</li>
+<li>InterProcessReadWriteLock 分布式读写锁</li>
+</ul>
+<h2 id="leader选举"><a href="#leader选举" class="headerlink" title="leader选举"></a>leader选举</h2><h3 id="选举过程"><a href="#选举过程" class="headerlink" title="选举过程"></a>选举过程</h3><p>指派一个进程作为组织者，将任务分发给各节点。在任务开始前，哪个节点都不知道谁是 leader 或者 coordinator。<br>当选举算法开始执行后，每个节点最终会得到一个唯一的节点作为任务 leader。除此之外，选举还经常会发生在 leader<br>意外宕机的情况下，新的 leader 要被选举出来。  </p>
+<h3 id="Curator实现选举"><a href="#Curator实现选举" class="headerlink" title="Curator实现选举"></a>Curator实现选举</h3><ul>
+<li><p>LeaderLatch</p>
+</li>
+<li><p>LeaderSeletor</p>
+</li>
+</ul>
+<h2 id="配置管理"><a href="#配置管理" class="headerlink" title="配置管理"></a>配置管理</h2><p>基于watch机制，在一个node节点上的value（即配置信息）一旦发生改变，将通知所有使用该配置的服务，并且会循环注册监控。<br>基于同一节点唯一性机制，保证配置文件独一份，可以使用不用的路径来配置不同的环境信息。以达到分布式服务使用统一的配置。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>一致性：zookeeper是一个最终顺序一致性，也就是所说的CP类型，在选择服务注册发现中心时，要考虑AP或CP</li>
+<li>可靠性：zookeeper通常以集群的形式对外提供服务，具有高可靠性。</li>
+<li>原子性：对节点的操作只有成功失败，没有中间态。对应每一个事务请求，ZooKeeper都会为其分配一个全局唯一的事务ID，<br>用ZXID表示，通常是一个64位的数字。每一个ZXID对应一次更新操作，从这些ZXID中可以间接地识别出ZooKeeper处理这些事务操作请求的全局顺序。</li>
+<li>顺序性：节点有序性。从同一个客户端发起的事务请求，最终将会严格按照其发起顺序被应用到ZooKeeper中。</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" rel="tag"># 中间件</a>
+          
+            <a href="/tags/%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E5%8F%91%E7%8E%B0/" rel="tag"># 服务注册发现</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/02/20/%E4%B8%AD%E9%97%B4%E4%BB%B6-redis/" rel="next" title="中间件-redis">
+                <i class="fa fa-chevron-left"></i> 中间件-redis
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/02/23/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/" rel="prev" title="设计模式-设计原则">
+                设计模式-设计原则 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/header.jpg"
+                alt="疾风灬利刃" />
+            
+              <p class="site-author-name" itemprop="name">疾风灬利刃</p>
+              <p class="site-description motion-element" itemprop="description">己若不动,叫天何用！</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#定义"><span class="nav-number">1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#存储结构"><span class="nav-number">2.</span> <span class="nav-text">存储结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Znode节点"><span class="nav-number">2.1.</span> <span class="nav-text">Znode节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#znode节点类型"><span class="nav-number">2.2.</span> <span class="nav-text">znode节点类型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ZAB协议"><span class="nav-number">3.</span> <span class="nav-text">ZAB协议</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">3.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZAB协议包含两种基本模式"><span class="nav-number">3.2.</span> <span class="nav-text">ZAB协议包含两种基本模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息广播之原子广播"><span class="nav-number">3.2.1.</span> <span class="nav-text">消息广播之原子广播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#崩溃恢复之数据恢复"><span class="nav-number">3.2.2.</span> <span class="nav-text">崩溃恢复之数据恢复</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#针对崩溃恢复的两种情况分析"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">针对崩溃恢复的两种情况分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ZXID"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">ZXID</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#功能"><span class="nav-number">4.</span> <span class="nav-text">功能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ACL-权限控制"><span class="nav-number">4.1.</span> <span class="nav-text">ACL 权限控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ACL权限"><span class="nav-number">4.1.1.</span> <span class="nav-text">ACL权限</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ACL权限模式"><span class="nav-number">4.1.2.</span> <span class="nav-text">ACL权限模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ACL授权对象"><span class="nav-number">4.1.3.</span> <span class="nav-text">ACL授权对象</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#watch监听机制"><span class="nav-number">4.2.</span> <span class="nav-text">watch监听机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#watch特点"><span class="nav-number">4.2.1.</span> <span class="nav-text">watch特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#watch事件"><span class="nav-number">4.2.2.</span> <span class="nav-text">watch事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式锁"><span class="nav-number">4.3.</span> <span class="nav-text">分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实现原理"><span class="nav-number">4.3.1.</span> <span class="nav-text">实现原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#curator实现的分布式锁"><span class="nav-number">4.3.2.</span> <span class="nav-text">curator实现的分布式锁</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#leader选举"><span class="nav-number">4.4.</span> <span class="nav-text">leader选举</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#选举过程"><span class="nav-number">4.4.1.</span> <span class="nav-text">选举过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Curator实现选举"><span class="nav-number">4.4.2.</span> <span class="nav-text">Curator实现选举</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置管理"><span class="nav-number">4.5.</span> <span class="nav-text">配置管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">疾风灬利刃</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">27.8k</span>
+  
+</div>
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_value_site_pv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+<!--
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+-->
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+	<script type="text/javascript" src="//cdn.bootcss.com/canvas-nest.js/1.0.0/canvas-nest.min.js"></script>
+  
+</body>
+</html>
