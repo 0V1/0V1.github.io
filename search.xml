@@ -76,16 +76,16 @@
       </tags>
   </entry>
   <entry>
-    <title>微服务-负载均衡</title>
+    <title>微服务-负载均衡(Ribbon)</title>
     <url>/2020/03/12/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<h1 id="微服务架构下服务通信需求"><a href="#微服务架构下服务通信需求" class="headerlink" title="微服务架构下服务通信需求"></a>微服务架构下服务通信需求</h1><h1 id="服务拆分"><a href="#服务拆分" class="headerlink" title="服务拆分"></a>服务拆分</h1><h1 id="RestTemplate"><a href="#RestTemplate" class="headerlink" title="RestTemplate"></a>RestTemplate</h1><h1 id="Ribbon"><a href="#Ribbon" class="headerlink" title="Ribbon"></a>Ribbon</h1>]]></content>
       <categories>
-        <category>负载均衡</category>
+        <category>负载均衡(Ribbon)</category>
       </categories>
       <tags>
         <tag>Cloud</tag>
-        <tag>Zuul</tag>
-        <tag>GetWay</tag>
+        <tag>Ribbon</tag>
+        <tag>Feign</tag>
       </tags>
   </entry>
   <entry>
@@ -221,15 +221,15 @@
   <entry>
     <title>微服务-服务注册发现</title>
     <url>/2020/03/04/%E5%BE%AE%E6%9C%8D%E5%8A%A1-%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E5%8F%91%E7%8E%B0/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<h1 id="服务注册发现"><a href="#服务注册发现" class="headerlink" title="服务注册发现"></a>服务注册发现</h1><h2 id="需求来源图示"><a href="#需求来源图示" class="headerlink" title="需求来源图示"></a>需求来源图示</h2><h2 id="满足特性"><a href="#满足特性" class="headerlink" title="满足特性"></a>满足特性</h2><h2 id="设计原理"><a href="#设计原理" class="headerlink" title="设计原理"></a>设计原理</h2><h1 id="Eureka"><a href="#Eureka" class="headerlink" title="Eureka"></a>Eureka</h1><p><a href="https://cloud.spring.io/spring-cloud-netflix/2.2.x/reference/html/#spring-cloud-eureka-server" target="_blank" rel="noopener">Eureka官网链接</a></p>
+<h2 id="Eureka-Server"><a href="#Eureka-Server" class="headerlink" title="Eureka Server"></a>Eureka Server</h2><h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><h2 id="Eureka-Client"><a href="#Eureka-Client" class="headerlink" title="Eureka Client"></a>Eureka Client</h2><h3 id="源码分析-1"><a href="#源码分析-1" class="headerlink" title="源码分析"></a>源码分析</h3>]]></content>
       <categories>
         <category>服务注册发现</category>
       </categories>
       <tags>
-        <tag>Cloud</tag>
-        <tag>Euarke</tag>
         <tag>zookeeper</tag>
         <tag>consle</tag>
+        <tag>Eureka</tag>
       </tags>
   </entry>
   <entry>
