@@ -307,9 +307,9 @@ exchange时的filterChain的运行，那么最后来看看整体是怎么组装�
         <category>服务注册发现</category>
       </categories>
       <tags>
+        <tag>Eureka</tag>
         <tag>zookeeper</tag>
         <tag>consle</tag>
-        <tag>Eureka</tag>
       </tags>
   </entry>
   <entry>
